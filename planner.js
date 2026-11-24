@@ -45,7 +45,9 @@ function savePlannerItem(e){
   const entry={type:state.itemType};
   for(const key of ['title','categoryId','date','time','priority','notes'])entry[key]=String(data.get(key)||'').trim();
   if(!entry.title||!entry.date||!entry.categoryId)return toast('Complete the title, date and subject');
-  entry.duration=Number(data.get('duration'))||30;
+  entry.endTime=String(data.get('endTime')||'');
+  if(Boolean(entry.time)!==Boolean(entry.endTime))return toast('Enter both start and end times, or leave both empty for an anytime activity');
+  entry.duration=entry.time?(clockMinutes(entry.endTime)-clockMinutes(entry.time)+1440)%1440||1440:30;
   entry.reminder=data.has('reminder');
   const previous=state.edit&&db.items.find(x=>x.id===state.edit);
   const mode=entry.type==='task'&&!previous?.seriesId?data.get('repeatMode'):'once';
@@ -72,14 +74,14 @@ function removeFuture(){
 function startTime(item){return new Date(item.date+'T'+item.time).getTime()}
 function livePlan(now) {
   const timed=db.items.filter(x=>x.time&&!x.done);
-  const current=timed.filter(x=>startTime(x)<=now&&now<startTime(x)+(Number(x.duration)||30)*60000).sort((a,b)=>startTime(b)-startTime(a));
+  const current=timed.filter(x=>startTime(x)<=now&&now<(x.endTime?new Date((x.endTime<=x.time?dateOffset(x.date,1):x.date)+'T'+x.endTime).getTime():startTime(x)+(Number(x.duration)||30)*60000)).sort((a,b)=>startTime(b)-startTime(a));
   const next=timed.filter(x=>startTime(x)>now).sort((a,b)=>startTime(a)-startTime(b))[0];
   return {current,next};
 }
 function liveCards(now=new Date()){
   const {current,next}=livePlan(+now);
   function card(item,label,empty){
-    return `<section class="live-card"><div class="live-label">${label}</div>${item?`<button class="live-title" data-id="${esc(item.id)}" onclick="openItem(this.dataset.id)">${esc(item.title)}</button><div class="sub">${fmtDate(item.date)} · ${fmtTime(item.time)} · ${esc(cat(item.categoryId).name)}</div>`:`<strong>${empty}</strong>`}</section>`;
+    return `<section class="live-card"><div class="live-label">${label}</div>${item?`<button class="live-title" data-id="${esc(item.id)}" onclick="openItem(this.dataset.id)">${esc(item.title)}</button><div class="sub">${fmtDate(item.date)} · ${activityRange(item)} · ${esc(cat(item.categoryId).name)}</div>`:`<strong>${empty}</strong>`}</section>`;
   }
   return `<div class="live-grid">${card(current[0],'<i class="green-dot"></i> Current activity'+(current.length>1?' · '+current.length+' overlap':''),'No activity in progress')}${card(next,'Up next','No upcoming timed activities')}</div>`;
 }
@@ -137,3 +139,89 @@ function refreshPlanner(){
   else remind(+now).catch(()=>{});
 }
 window.addEventListener('load',()=>{refreshPlanner();setInterval(refreshPlanner,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPlanner()})});
+
+function clockMinutes(time) {
+  const [hour, minute] = time.split(':').map(Number);
+  return hour * 60 + minute;
+}
+function clockValue(minutes) {
+  const value = ((minutes % 1440) + 1440) % 1440;
+  return [Math.floor(value / 60), value % 60].map(n => String(n).padStart(2,'0')).join(':');
+}
+function endClock(item) {
+  if (!item?.time) return '';
+  return item.endTime || clockValue(clockMinutes(item.time) + (Number(item.duration) || 30));
+}
+function activityRange(item) {
+  if (!item.time) return fmtTime('');
+  const end = endClock(item);
+  return fmtTime(item.time) + ' – ' + fmtTime(end) + (end <= item.time ? ' (+1 day)' : '');
+}
+function clockFields(item) {
+  return `<fieldset class="clock-fields"><legend>Activity time</legend><div class="clock-inputs">
+    ${[['time','Start time',item?.time],['endTime','End time',endClock(item)]].map(([name,label,value])=>`<div><label>${label}<input class="field" type="time" name="${name}" value="${esc(value||'')}" oninput="syncClock(this.form)"></label><button type="button" class="link" onclick="openClock(this.form,'${name}')">Set on clock</button></div>`).join('')}
+    </div><div class="clock-editor" hidden></div><small class="clock-caption" aria-live="polite"></small></fieldset>`;
+}
+function syncClock(form) {
+  const start=form.elements.time.value, end=form.elements.endTime.value;
+  form.querySelector('.clock-caption').textContent=start&&end&&end<=start?'Ends the following day':'';
+}
+function openClock(form, field) {
+  const editor=form.querySelector('.clock-editor');
+  editor.hidden=false;
+  editor.dataset.field=field;
+  editor.dataset.unit='hour';
+  const now=new Date();
+  editor.dataset.value=form.elements[field].value || clockValue(field==='endTime'&&form.elements.time.value?clockMinutes(form.elements.time.value)+30:now.getHours()*60+now.getMinutes());
+  editor.innerHTML=`<div class="clock-controls"><strong>${field==='time'?'Start time':'End time'}</strong><output></output></div>
+    <div class="clock-controls">${['hour','minute','AM','PM'].map(key=>`<button type="button" class="pill" data-choice="${key}">${key==='hour'?'Hour':key==='minute'?'Minute':key}</button>`).join('')}</div>
+    <div class="dial" role="slider" tabindex="0" aria-label="Clock hand"><i></i></div><div class="clock-controls"><button type="button" class="secondary" data-cancel>Cancel</button><button type="button" class="primary" data-apply>Set time</button></div>`;
+  const dial=editor.querySelector('.dial');
+  for(let i=0;i<12;i++){
+    const mark=document.createElement('span'),angle=i*Math.PI/6;
+    mark.style.left=(50+40*Math.sin(angle))+'%';mark.style.top=(50-40*Math.cos(angle))+'%';dial.append(mark);
+  }
+  function draw() {
+    const minutes=clockMinutes(editor.dataset.value), hours=editor.dataset.unit==='hour';
+    const position=hours?Math.floor(minutes/60)%12:minutes%60;
+    dial.style.setProperty('--angle',(position*(hours?30:6))+'deg');
+    dial.querySelectorAll('span').forEach((el,i)=>el.textContent=hours?(i||12):String(i*5).padStart(2,'0'));
+    dial.setAttribute('aria-label',hours?'Hour':'Minute');
+    dial.setAttribute('aria-valuemin',hours?'1':'0');dial.setAttribute('aria-valuemax',hours?'12':'59');
+    dial.setAttribute('aria-valuenow',hours?(position||12):position);
+    editor.querySelector('output').textContent=fmtTime(editor.dataset.value);
+    for(const b of editor.querySelectorAll('[data-choice]'))b.setAttribute('aria-pressed',String([editor.dataset.unit,minutes>=720?'PM':'AM'].includes(b.dataset.choice)));
+  }
+  function setPosition(index) {
+    const value=clockMinutes(editor.dataset.value);
+    editor.dataset.value=clockValue(editor.dataset.unit==='hour'?(value>=720?720:0)+(index%12)*60+value%60:value-value%60+index%60);
+    draw();
+  }
+  function point(event) {
+    const rect=dial.getBoundingClientRect();
+    const angle=Math.atan2(event.clientX-rect.left-rect.width/2,rect.top+rect.height/2-event.clientY);
+    const count=editor.dataset.unit==='hour'?12:60;
+    setPosition((Math.round(angle*count/(2*Math.PI))+count)%count);
+  }
+  dial.onpointerdown=e=>{dial.setPointerCapture(e.pointerId);point(e)};
+  dial.onpointermove=e=>{if(dial.hasPointerCapture(e.pointerId))point(e)};
+  dial.onpointerup=e=>{point(e);dial.releasePointerCapture(e.pointerId);editor.dataset.unit='minute';draw()};
+  dial.onkeydown=e=>{
+    if(!['ArrowRight','ArrowLeft','ArrowUp','ArrowDown'].includes(e.key))return;
+    e.preventDefault();const hour=editor.dataset.unit==='hour',count=hour?12:60,value=clockMinutes(editor.dataset.value);
+    setPosition(((hour?Math.floor(value/60):value)+count+(['ArrowUp','ArrowRight'].includes(e.key)?1:-1))%count);
+  };
+  editor.onclick=e=>{
+    const key=e.target.dataset.choice;
+    if(key==='hour'||key==='minute')editor.dataset.unit=key;
+    if(key==='AM'||key==='PM')editor.dataset.value=clockValue(clockMinutes(editor.dataset.value)%720+(key==='PM'?720:0));
+    if(e.target.hasAttribute('data-apply')){
+      form.elements[field].value=editor.dataset.value;
+      if(field==='time'&&!form.elements.endTime.value)form.elements.endTime.value=clockValue(clockMinutes(editor.dataset.value)+30);
+      syncClock(form);
+    }
+    if(e.target.hasAttribute('data-apply')||e.target.hasAttribute('data-cancel')){editor.hidden=true;form.elements[field].focus();return}
+    draw();
+  };
+  draw();dial.focus();
+}

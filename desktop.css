@@ -164,3 +164,16 @@ body { background: var(--workspace); }
 .due-alert {background:#15231d;border:1px solid #4a896a;border-radius:14px;padding:16px;margin-bottom:8px;box-shadow:0 12px 40px #0008}
 .due-alert .secondary {margin-top:9px}
 @media(max-width:620px){.live-grid{gap:8px}.live-card{padding:12px}.progress-stat{display:block}.progress-stat .ring{width:39px;height:39px}.progress-stat strong{font-size:11px}}
+.clock-fields {margin:16px 0;padding:12px;border:1px solid #44363e;border-radius:12px;color:#e2dce2;font-size:13px}
+.clock-inputs {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.clock-inputs .field {margin-top:5px;min-width:0}
+.clock-controls {display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;margin:10px 0}
+.clock-controls output {font-weight:700;color:#71e7a9}
+.clock-controls [aria-pressed=true] {border-color:#5ab782;color:#95f4bd}
+.clock-caption {display:block;color:#b2e9c9}
+.dial {position:relative;width:min(200px,100%);aspect-ratio:1;margin:14px auto;border:1px solid #4b4c54;border-radius:50%;background:#202128;touch-action:none;cursor:crosshair;user-select:none}
+.dial span {position:absolute;transform:translate(-50%,-50%);pointer-events:none;font-variant-numeric:tabular-nums}
+.dial i {position:absolute;bottom:50%;left:calc(50% - 2px);height:40%;width:4px;background:#4ce296;border-radius:6px;transform-origin:center bottom;transform:rotate(var(--angle))}
+.dial i:before,.dial:after {content:'';position:absolute;border-radius:50%;background:#4ce296}
+.dial i:before {width:24px;height:24px;top:-12px;left:-10px;background:#1e7049}
+.dial:after {width:10px;height:10px;left:calc(50% - 5px);top:calc(50% - 5px)}
