@@ -141,3 +141,26 @@ body { background: var(--workspace); }
   .cal-count { display: block; color: #ffa0ad; font-size: 10px; }
   .page-heading .primary { font-size: 12px; padding: 10px; }
 }
+.live-grid {display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.live-card {min-width:0;border:1px solid #383740;background:linear-gradient(130deg,#232128,#15161c);border-radius:16px;padding:20px}
+.live-card:first-child {border-color:#345649;background:linear-gradient(125deg,#172c24,#151a1a)}
+.live-label {display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#c1c7c4;margin-bottom:9px}
+.green-dot {width:9px;height:9px;border-radius:100%;background:#48db95;box-shadow:0 0 0 4px #43d78b18}
+.live-title {display:block;border:0;background:transparent;padding:0;color:#fff;text-align:left;font-size:clamp(16px,2vw,24px);font-weight:700;overflow-wrap:anywhere}
+.live-card .sub {margin-top:6px}
+.now-line {display:flex;align-items:center;gap:8px;color:#67e7a6;font-weight:650;font-size:12px;margin:14px 0}
+.now-line:before {content:'';width:8px;height:8px;border-radius:50%;background:currentColor}
+.now-line:after {content:'';height:1px;flex:1;background:currentColor}
+.progress-stat {display:flex;align-items:center;gap:12px}
+.progress-stat .ring {--c:#51df96!important;width:52px;height:52px;flex:none;margin:0}
+.progress-stat .ring span {color:white;font-size:13px}
+.repeat {margin:16px 0;border:1px solid #3f3c46;border-radius:12px;padding:12px;color:#d6d3dd;font-size:13px}
+.repeat p {margin:10px 0}.repeat .field {margin-top:5px}
+.weekdays,.date-chips,.date-add {display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.weekdays label {background:#23242c;border-radius:8px;padding:7px}
+.weekdays input,.reminder-check input {accent-color:#ed4558}
+.date-add .field {flex:1;min-width:120px}.reminder-check {display:block;margin:12px 0;font-size:14px}
+#due-tray {position:fixed;z-index:60;top:12px;right:12px;max-width:min(340px,94vw);max-height:82vh;overflow:auto}
+.due-alert {background:#15231d;border:1px solid #4a896a;border-radius:14px;padding:16px;margin-bottom:8px;box-shadow:0 12px 40px #0008}
+.due-alert .secondary {margin-top:9px}
+@media(max-width:620px){.live-grid{gap:8px}.live-card{padding:12px}.progress-stat{display:block}.progress-stat .ring{width:39px;height:39px}.progress-stat strong{font-size:11px}}

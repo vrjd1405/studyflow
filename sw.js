@@ -1,5 +1,5 @@
-const CACHE='studyflow-warrior-plus-ultimate-v1:'+self.registration.scope;
-const CORE=['./','./index.html','./desktop.css','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/warrior-1.webp','./icons/warrior-2.webp','./icons/warrior-3.webp'];
+const CACHE='studyflow-warrior-plus-ultimate-v2:'+self.registration.scope;
+const CORE=['./','./index.html','./desktop.css','./planner.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/warrior-1.webp','./icons/warrior-2.webp','./icons/warrior-3.webp'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
 });
