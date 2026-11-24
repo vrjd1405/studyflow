@@ -1,14 +1,18 @@
-# StudyFlow Warrior Plus — GitHub Pages PWA
+# StudyFlow Desktop — Ultimate Edition
 
-Upload the contents of this folder to the root of a public GitHub repository.
-In repository Settings > Pages, select Deploy from a branch, `main`, `/ (root)`, and Save.
-Visit `https://YOUR_USERNAME.github.io/YOUR_REPOSITORY/` in Chrome on Android.
-Use Chrome's ⋮ menu > Install app (or Add to Home screen, if offered).
+StudyFlow is a static, installable study planner. It includes a desktop dashboard, month/week/day calendar, task and event filters, subject notes, focus sessions, and analytics. The original warrior artwork, icons, and 14 scheduled activities from November 24 to December 2, 2026 are included.
 
-Files: index.html (the complete app), manifest.webmanifest (install settings),
-sw.js (offline cache), icons/ (home screen icons).
+## Deploy to GitHub Pages
 
-Your tasks are stored in browser localStorage, not synced between devices or
-between the old downloaded HTML file and the new HTTPS site. Export a JSON backup
-from the old app and import it into the hosted app if you want to migrate.
-Back up regularly. Uninstalling or clearing site data may delete local data.
+1. In your current StudyFlow, open **Profile → Export JSON backup** and save a copy.
+2. Unzip the package. Copy its contents into the folder your repository already publishes. The published folder should directly contain `index.html`, `desktop.css`, `sw.js`, `manifest.webmanifest`, and `icons/`.
+3. Commit the files to your Pages source branch. Once the deployment finishes, open the HTTPS Pages address. Reload once if the previous version is still open.
+4. After the first successful online load, the installed app can reopen offline. On a browser that offers PWA installation, use its address bar or menu to install StudyFlow.
+
+There is no build step. The relative paths also work under a repository subdirectory, such as `/studyflow/`.
+
+## Existing data
+
+The app reads and writes the original `studyflow-warrior-v4` localStorage record. Use the same browser profile and origin (scheme, hostname, and port) to retain automatic access to that data. If you change browsers, profiles, or domains, open **Profile → Restore JSON backup** and select your saved file. Restoring a backup replaces the current data.
+
+The original cumulative focus-session total is retained. Minutes are recorded for sessions completed in Ultimate Edition.

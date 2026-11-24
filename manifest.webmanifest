@@ -1,6 +1,6 @@
 {
   "id": "./",
-  "name": "StudyFlow \u2014 Warrior Plus",
+  "name": "StudyFlow Desktop — Ultimate Edition",
   "short_name": "StudyFlow",
   "description": "Your warrior-themed study planner, calendar, and focus timer.",
   "start_url": "./",
@@ -8,7 +8,6 @@
   "display": "standalone",
   "background_color": "#08090d",
   "theme_color": "#08090d",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "./icons/icon-192.png",
